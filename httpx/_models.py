@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import codecs
 import datetime
 import email.message
 import json as jsonlib
@@ -45,7 +46,6 @@ from ._types import (
 )
 from ._urls import URL
 from ._utils import (
-    is_known_encoding,
     obfuscate_sensitive_headers,
     parse_content_type_charset,
     parse_header_links,
@@ -597,14 +597,24 @@ class Response:
           a string like "utf-8" indicating the encoding to use, or may be a callable
           which enables charset autodetection.
         """
-        if not hasattr(self, "_encoding"):
-            encoding = self.charset_encoding
-            if encoding is None or not is_known_encoding(encoding):
-                if isinstance(self.default_encoding, str):
-                    encoding = self.default_encoding
-                elif hasattr(self, "_content"):
-                    encoding = self.default_encoding(self._content)
-            self._encoding = encoding or "utf-8"
+
+        if hasattr(self, "_encoding"):
+            return self._encoding
+
+        if self.charset_encoding:
+            encoding: str = self.charset_encoding
+        else:
+            encoding = ""
+
+        try:
+            codecs.lookup(encoding)
+        except LookupError:
+            if isinstance(self.default_encoding, str):
+                encoding = self.default_encoding
+            elif hasattr(self, "_content"):
+                encoding = self.default_encoding(self._content)
+
+        self._encoding = encoding  # type: str | None
         return self._encoding
 
     @encoding.setter

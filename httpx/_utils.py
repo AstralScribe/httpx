@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import codecs
 import email.message
 import ipaddress
 import os
@@ -27,17 +26,6 @@ def primitive_value_to_str(value: PrimitiveData) -> str:
     elif value is None:
         return ""
     return str(value)
-
-
-def is_known_encoding(encoding: str) -> bool:
-    """
-    Return `True` if `encoding` is a known codec.
-    """
-    try:
-        codecs.lookup(encoding)
-    except LookupError:
-        return False
-    return True
 
 
 def parse_header_links(value: str) -> list[dict[str, str]]:
